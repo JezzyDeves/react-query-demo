@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import create from "./services/create";
 import { useState } from "react";
 import getToken from "./services/getToken";
+import { useAsync } from "./hooks/useAsync";
 
 function App() {
   const apiCall = useMutation({
@@ -38,6 +39,8 @@ function App() {
     refetchInterval: 1000 * 60,
   });
 
+  const customCreate = useAsync(create);
+
   const [text, setText] = useState("");
 
   if (tokenQuery.isLoading) {
@@ -51,9 +54,16 @@ function App() {
         value={text}
       />
       <button onClick={() => apiCall.mutate({ text })}>GO</button>
+      <button onClick={() => customCreate.execute({ text })}>GO CUSTOM</button>
       <br />
-      {apiCall.isLoading ? "Loading" : apiCall.data?.text} <br />
-      {errorMessage()}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <h4>React Query</h4>
+        {apiCall.isLoading ? "Loading" : apiCall.data?.text}
+        {errorMessage()}
+        <h4>Custom Hook</h4>
+        {customCreate.loading ? "Loading" : customCreate.data?.text}
+        {customCreate.error?.message}
+      </div>
     </>
   );
 }
