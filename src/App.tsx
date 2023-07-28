@@ -4,7 +4,18 @@ import { useState } from "react";
 import getToken from "./services/getToken";
 
 function App() {
-  const apiCall = useMutation(create);
+  const apiCall = useMutation({
+    mutationFn: create,
+    onSuccess: (data) => {
+      console.log("Success", data);
+    },
+    onError: (error) => {
+      console.log("Error", error);
+    },
+    onSettled: (data) => {
+      console.log("Settled", data);
+    },
+  });
 
   const errorMessage = () => {
     if (apiCall.error instanceof Error) {
