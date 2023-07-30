@@ -1,28 +1,12 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import create from "./services/create";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useCreateText } from "./handlers/useCreateText";
 import getToken from "./services/getToken";
-import { useAsync } from "./hooks/useAsync";
+import { useTextStore } from "./stores/useTextsStore";
 
 function App() {
-  const apiCall = useMutation({
-    mutationFn: create,
-    onSuccess: (data) => {
-      console.log("Success", data);
-    },
-    onError: (error) => {
-      console.log("Error", error);
-    },
-    onSettled: (data) => {
-      console.log("Settled", data);
-    },
-  });
-
-  const errorMessage = () => {
-    if (apiCall.error instanceof Error) {
-      return <>{apiCall.error.message}</>;
-    }
-  };
+  const apiCall = useCreateText();
+  const texts = useTextStore((state) => state.texts);
 
   async function tokenFetch() {
     const token = await getToken();
@@ -39,8 +23,6 @@ function App() {
     refetchInterval: 1000 * 60,
   });
 
-  const customCreate = useAsync(create);
-
   const [text, setText] = useState("");
 
   if (tokenQuery.isLoading) {
@@ -53,16 +35,14 @@ function App() {
         onChange={(e) => setText(e.target.value)}
         value={text}
       />
-      <button onClick={() => apiCall.mutate({ text })}>GO</button>
-      <button onClick={() => customCreate.execute({ text })}>GO CUSTOM</button>
+      <button onClick={() => apiCall.mutate(text)}>GO</button>
       <br />
       <div style={{ display: "flex", flexDirection: "column" }}>
         <h4>React Query</h4>
-        {apiCall.isLoading ? "Loading" : apiCall.data?.text}
-        {errorMessage()}
-        <h4>Custom Hook</h4>
-        {customCreate.loading ? "Loading" : customCreate.data?.text}
-        {customCreate.error?.message}
+        {apiCall.isLoading ? "Loading" : "Idle"} <br />
+        {apiCall.error?.message}
+        <h4>Store Values</h4>
+        {texts.join(", ")}
       </div>
     </>
   );
